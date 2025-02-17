@@ -36,7 +36,7 @@ type Controller struct {
 
 func New(
 	ratingGateway ratingGateway,
-	memetadataGateway metadataGateway, 
+	memetadataGateway metadataGateway,
 	logger *zap.Logger,
 ) *Controller {
 	return &Controller{ratingGateway, memetadataGateway, logger}

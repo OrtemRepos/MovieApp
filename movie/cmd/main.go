@@ -16,7 +16,7 @@ func main() {
 		panic(err)
 	}
 	defer logger.Sync()
-	
+
 	logger.Info("Starting the movie service")
 
 	metadataGateway := metadatagateway.New("localhost:8081")

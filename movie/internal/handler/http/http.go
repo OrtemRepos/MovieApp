@@ -41,4 +41,4 @@ func (h *Handler) GetMovieDetails(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-} 
+}

@@ -17,7 +17,7 @@ func main() {
 	defer logger.Sync()
 
 	logger.Info("Starting the metadata service")
-	
+
 	repo := memory.New()
 	ctrl := metadata.New(repo, logger)
 
