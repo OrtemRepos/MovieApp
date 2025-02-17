@@ -69,13 +69,13 @@ func (g *Gateway) PutRating(
 	if err != nil {
 		return err
 	}
-	url := "http://" + addrs[rand.Intn(len(addrs))] + "rating"
+	url := "http://" + addrs[rand.Intn(len(addrs))] + "/rating"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		g.logger.Error("Error when PUT requesting the rating service", zap.String("url", url), zap.Error(err))
 		return err
 	}
-	g.logger.Info("Calling rating service.", zap.Any("request", req))
+	g.logger.Info("Calling rating service")
 	query := req.URL.Query()
 	query.Add("id", string(recordID))
 	query.Add("type", string(recordType))

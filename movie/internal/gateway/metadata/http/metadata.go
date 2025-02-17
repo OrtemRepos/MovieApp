@@ -27,13 +27,13 @@ func (g *Gateway) Get(ctx context.Context, id string) (*model.Metadata, error) {
 	if err != nil {
 		return nil, err
 	}
-	url := "http://" + addrs[rand.Intn(len(addrs))] + "metadata"
+	url := "http://" + addrs[rand.Intn(len(addrs))] + "/metadata"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		g.logger.Error("Error when requesting the metadata service", zap.String("url", url), zap.Error(err))
 		return nil, err
 	}
-	g.logger.Info("Calling metadata service.", zap.Any("request", req))
+	g.logger.Info("Calling metadata service")
 	query := req.URL.Query()
 	query.Add("id", id)
 	req.URL.RawQuery = query.Encode()
