@@ -4,28 +4,39 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 
+	"go.uber.org/zap"
 	"movieexample.com/movie/internal/gateway"
+	"movieexample.com/pkg/discovery"
 	"movieexample.com/rating/pkg/model"
 )
 
 type Gateway struct {
-	addr string
+	registry discovery.Registry
+	logger   *zap.Logger
 }
 
-func New(addr string) *Gateway {
-	return &Gateway{addr}
+func New(registry discovery.Registry, logger *zap.Logger) *Gateway {
+	return &Gateway{registry, logger}
 }
 
 func (g *Gateway) GetAggregatedRating(
 	ctx context.Context, recordID model.RecordID,
 	recordType model.RecordType,
 ) (float64, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, g.addr+"/rating", nil)
+	addrs, err := g.registry.ServiceAddresses(ctx, "rating")
 	if err != nil {
+		return 0, nil
+	}
+	url := "http://" + addrs[rand.Intn(len(addrs))] + "rating"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		g.logger.Error("Error when GET requesting the rating service", zap.String("url", url), zap.Error(err))
 		return 0, err
 	}
+	g.logger.Info("Calling rating service.", zap.Any("request", req))
 	query := req.URL.Query()
 	query.Add("id", string(recordID))
 	query.Add("type", string(recordType))
@@ -54,10 +65,17 @@ func (g *Gateway) PutRating(
 	recordType model.RecordType, userID model.UserID,
 	value model.RatingValue,
 ) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, g.addr+"/rating", nil)
+	addrs, err := g.registry.ServiceAddresses(ctx, "rating")
 	if err != nil {
 		return err
 	}
+	url := "http://" + addrs[rand.Intn(len(addrs))] + "rating"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		g.logger.Error("Error when PUT requesting the rating service", zap.String("url", url), zap.Error(err))
+		return err
+	}
+	g.logger.Info("Calling rating service.", zap.Any("request", req))
 	query := req.URL.Query()
 	query.Add("id", string(recordID))
 	query.Add("type", string(recordType))

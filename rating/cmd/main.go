@@ -1,28 +1,72 @@
 package main
 
 import (
+	"context"
+	"flag"
+	"fmt"
 	"net/http"
+	"time"
 
 	"go.uber.org/zap"
+	"movieexample.com/pkg/discovery"
+	"movieexample.com/pkg/discovery/consul"
 	"movieexample.com/rating/internal/controller/rating"
 	handlerhttp "movieexample.com/rating/internal/handler/http"
 	"movieexample.com/rating/internal/repository/memory"
 )
+
+const serviceName = "rating"
 
 func main() {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		panic(err)
 	}
-	defer logger.Sync()
+	defer func(){ _ = logger.Sync() }()
 
-	logger.Info("Starting the rating service")
+	port := flag.Int("p", 8082, "API handler port")
+	flag.Parse()
+
+	logger.Info("Starting the rating service", zap.Int("port", *port))
+
+	registry, err := consul.NewRegistry("localhost:8500")
+	if err != nil {
+		panic(err)
+	}
+
+	ctx, cancelFunc := context.WithCancel(context.Background())
+
+	instanceID := discovery.GenerateInstanceID(serviceName)
+
+	if err := registry.Register(ctx, instanceID, serviceName, fmt.Sprintf("localhost:%d", *port)); err != nil {
+		panic(err)
+	}
+	go func(ctx context.Context) {
+		for {
+			if err := registry.ReportHealthyState(instanceID, serviceName); err != nil {
+				logger.Info("Failed to report healthy state", zap.Error(err))
+			}
+			time.Sleep(1 * time.Second)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+		}
+	}(ctx)
+
+	defer func() {
+		if err := registry.Deregister(ctx, instanceID, serviceName); err != nil {
+			logger.Error("Error when executing Deregister", zap.Error(err))
+		}
+	}()
+	defer cancelFunc()
 
 	repo := memory.New()
 	ctrl := rating.New(repo, logger)
 	handler := handlerhttp.New(ctrl, logger)
 	http.Handle("/rating", http.HandlerFunc(handler.Handle))
-	if err := http.ListenAndServe(":8082", nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
 		panic(err)
 	}
 }
