@@ -11,6 +11,7 @@ import (
 
 type metadataRepository interface {
 	Get(ctx context.Context, id string) (*model.Metadata, error)
+	Put(ctx context.Context, id string, metadata *model.Metadata) error
 }
 
 type Controller struct {
@@ -31,4 +32,11 @@ func (c *Controller) Get(ctx context.Context, id string) (*model.Metadata, error
 		return nil, err
 	}
 	return res, nil
+}
+
+func (c *Controller) Put(ctx context.Context, id string, metadata *model.Metadata) error {
+	if err := c.repo.Put(ctx, id, metadata); err != nil {
+		return err
+	}
+	return nil
 }

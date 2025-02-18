@@ -68,9 +68,7 @@ func (h *Handler) Handle(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		ratingValue := model.Rating{RecordID: recordID, RecordType: recordType, UserID: userID, Value: model.RatingValue(v)}
-
-		if err := h.ctrl.PutRating(req.Context(), recordID, recordType, &ratingValue); err != nil {
+		if err := h.ctrl.PutRating(req.Context(), recordID, userID, recordType, model.RatingValue(v)); err != nil {
 			h.logger.Error("repository put error", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return

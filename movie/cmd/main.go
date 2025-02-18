@@ -4,14 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"net/http"
+	"net"
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"movieexample.com/gen"
 	"movieexample.com/movie/internal/controller/movie"
-	metadatagateway "movieexample.com/movie/internal/gateway/metadata/http"
-	moviegateway "movieexample.com/movie/internal/gateway/rating/http"
-	httphandelr "movieexample.com/movie/internal/handler/http"
+	metadatagateway "movieexample.com/movie/internal/gateway/metadata/grpc"
+	ratinggateway "movieexample.com/movie/internal/gateway/rating/grpc"
+	grpchandler "movieexample.com/movie/internal/handler/grpc"
 	"movieexample.com/pkg/discovery"
 	"movieexample.com/pkg/discovery/consul"
 )
@@ -25,7 +27,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer func(){ _ = logger.Sync() }()
+	defer func() { _ = logger.Sync() }()
 
 	logger.Info("Starting the movie service", zap.Int("port", *port))
 
@@ -62,15 +64,19 @@ func main() {
 	}()
 	defer cancelFunc()
 
-	metadataGateway := metadatagateway.New(registry, logger)
-	ratingGateway := moviegateway.New(registry, logger)
+	metadataGateway := metadatagateway.New(registry)
+	ratingGateway := ratinggateway.New(registry)
 
 	ctrl := movie.New(ratingGateway, metadataGateway, logger)
+	h := grpchandler.New(ctrl, logger)
 
-	handler := httphandelr.New(ctrl, logger)
-
-	http.Handle("/movie", http.HandlerFunc(handler.GetMovieDetails))
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
-		panic(err)
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	if err != nil {
+		logger.Fatal("Failed to listen", zap.Int("port", *port), zap.Error(err))
+	}
+	srv := grpc.NewServer()
+	gen.RegisterMovieServiceServer(srv, h)
+	if err := srv.Serve(lis); err != nil {
+		logger.Fatal("Failed to accepts incoming connections", zap.Error(err))
 	}
 }

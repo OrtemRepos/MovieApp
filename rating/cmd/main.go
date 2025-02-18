@@ -4,14 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"net/http"
+	"net"
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"movieexample.com/gen"
 	"movieexample.com/pkg/discovery"
 	"movieexample.com/pkg/discovery/consul"
 	"movieexample.com/rating/internal/controller/rating"
-	handlerhttp "movieexample.com/rating/internal/handler/http"
+	grpchandler "movieexample.com/rating/internal/handler/grpc"
 	"movieexample.com/rating/internal/repository/memory"
 )
 
@@ -22,7 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer func(){ _ = logger.Sync() }()
+	defer func() { _ = logger.Sync() }()
 
 	port := flag.Int("p", 8082, "API handler port")
 	flag.Parse()
@@ -64,9 +66,16 @@ func main() {
 
 	repo := memory.New()
 	ctrl := rating.New(repo, logger)
-	handler := handlerhttp.New(ctrl, logger)
-	http.Handle("/rating", http.HandlerFunc(handler.Handle))
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
-		panic(err)
+
+	h := grpchandler.New(ctrl, logger)
+
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	if err != nil {
+		logger.Fatal("Failed to listen", zap.Int("port", *port), zap.Error(err))
+	}
+	srv := grpc.NewServer()
+	gen.RegisterRatingServiceServer(srv, h)
+	if err := srv.Serve(lis); err != nil {
+		logger.Fatal("Failed to accepts incoming connections", zap.Error(err))
 	}
 }

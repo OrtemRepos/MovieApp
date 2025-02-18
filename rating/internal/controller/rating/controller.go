@@ -49,8 +49,14 @@ func (c *Controleer) GetAggregatedRating(
 }
 
 func (c *Controleer) PutRating(
-	ctx context.Context, recordID model.RecordID,
-	recordType model.RecordType, rating *model.Rating,
+	ctx context.Context, recordID model.RecordID, userID model.UserID,
+	recordType model.RecordType, value model.RatingValue,
 ) error {
+	rating := &model.Rating{
+		RecordID:   recordID,
+		RecordType: recordType,
+		UserID:     userID,
+		Value:      value,
+	}
 	return c.repo.Put(ctx, recordID, recordType, rating)
 }

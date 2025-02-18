@@ -4,13 +4,15 @@ go 1.23.5
 
 require (
 	github.com/google/uuid v1.6.0
+	github.com/hashicorp/consul/api v1.31.1
 	go.uber.org/zap v1.27.0
+	google.golang.org/grpc v1.70.0
+	google.golang.org/protobuf v1.35.2
 )
 
 require (
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
-	github.com/hashicorp/consul/api v1.31.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
@@ -26,5 +28,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
 )

@@ -4,12 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"net/http"
+	"net"
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"movieexample.com/gen"
 	"movieexample.com/metadata/internal/controller/metadata"
-	httphandler "movieexample.com/metadata/internal/handler/http"
+	grpchandler "movieexample.com/metadata/internal/handler/grpc"
 	"movieexample.com/metadata/internal/repository/memory"
 	"movieexample.com/pkg/discovery"
 	"movieexample.com/pkg/discovery/consul"
@@ -25,7 +27,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer func(){ _ = logger.Sync() }()
+	defer func() { _ = logger.Sync() }()
 
 	logger.Info("Starting the metadata service", zap.Int("port", *port))
 
@@ -62,10 +64,15 @@ func main() {
 	repo := memory.New()
 	ctrl := metadata.New(repo, logger)
 
-	h := httphandler.New(ctrl, logger)
+	h := grpchandler.New(ctrl, logger)
 
-	http.Handle("/metadata", http.HandlerFunc(h.GetMetadata))
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
-		panic(err)
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	if err != nil {
+		logger.Fatal("Failed to listen", zap.Int("port", *port), zap.Error(err))
+	}
+	srv := grpc.NewServer()
+	gen.RegisterMetadataServiceServer(srv, h)
+	if err := srv.Serve(lis); err != nil {
+		logger.Fatal("Failed to accepts incoming connections", zap.Error(err))
 	}
 }
