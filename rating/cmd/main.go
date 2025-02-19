@@ -14,6 +14,7 @@ import (
 	"movieexample.com/pkg/discovery/consul"
 	"movieexample.com/rating/internal/controller/rating"
 	grpchandler "movieexample.com/rating/internal/handler/grpc"
+	"movieexample.com/rating/internal/ingester/kafka"
 	"movieexample.com/rating/internal/repository/memory"
 )
 
@@ -65,7 +66,11 @@ func main() {
 	defer cancelFunc()
 
 	repo := memory.New()
-	ctrl := rating.New(repo, logger)
+	ingestrer, err := kafka.NewIngester("localhost:9093", "ingester", "rating", logger)
+	if err != nil {
+		panic(err)
+	}
+	ctrl := rating.New(repo, ingestrer, logger)
 
 	h := grpchandler.New(ctrl, logger)
 

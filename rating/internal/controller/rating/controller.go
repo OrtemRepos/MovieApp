@@ -21,13 +21,18 @@ type ratingRepository interface {
 	) error
 }
 
-type Controleer struct {
-	repo   ratingRepository
-	logger *zap.Logger
+type ratingIngester interface {
+	Ingest(ctx context.Context) (chan model.RatingEvent, error)
 }
 
-func New(repo ratingRepository, logger *zap.Logger) *Controleer {
-	return &Controleer{repo, logger}
+type Controleer struct {
+	repo     ratingRepository
+	ingester ratingIngester
+	logger   *zap.Logger
+}
+
+func New(repo ratingRepository, ingester ratingIngester, logger *zap.Logger) *Controleer {
+	return &Controleer{repo, ingester, logger}
 }
 
 func (c *Controleer) GetAggregatedRating(
@@ -59,4 +64,18 @@ func (c *Controleer) PutRating(
 		Value:      value,
 	}
 	return c.repo.Put(ctx, recordID, recordType, rating)
+}
+
+func (c *Controleer) StartIngestion(ctx context.Context) error {
+	ch, err := c.ingester.Ingest(ctx)
+	if err != nil {
+		return err
+	}
+	for e := range ch {
+		if err := c.PutRating(ctx, e.RecordID, e.UserID, e.RecordType, e.Value); err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
