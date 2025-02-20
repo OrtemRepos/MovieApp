@@ -36,3 +36,20 @@ func (g *Gateway) Get(ctx context.Context, id string) (*model.Metadata, error) {
 	}
 	return model.MetadataFromProto(resp.Metadata), nil
 }
+
+func (g *Gateway) Put(ctx context.Context, id string, metadata *model.Metadata) error {
+	conn, err := grpcutil.ServiceConnection(ctx, "metadata", g.registry)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = conn.Close() }()
+	client := gen.NewMetadataServiceClient(conn)
+	_, err = client.PutMetadata(
+		ctx,
+		&gen.PutMetadataReuqest{
+			Id: id,
+			Metadata: model.MetadataToProto(metadata),
+		},
+	)
+	return err
+}

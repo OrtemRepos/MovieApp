@@ -55,5 +55,5 @@ func (h *Handler) PutRating(ctx context.Context, req *gen.PutRatingRequest) (*ge
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.PutRatingResponse{}, nil
+	return &gen.PutRatingResponse{RecordId: req.RecordId, RatingValue: req.RatingValue}, nil
 }

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	_ "github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"movieexample.com/metadata/internal/repository"
 	"movieexample.com/metadata/pkg/model"
@@ -17,15 +17,16 @@ type Repository struct {
 
 const schema = `
 CREATE TABLE IF NOT EXISTS movies (
-	id VARCHAR(255),
+	id VARCHAR(255) NOT NULL UNIQUE,
 	title VARCHAR(255),
 	description TEXT,
 	director VARCHAR(255)
+	PRIMARY KEY (id)
 );
 `
 
 func New() (*Repository, error) {
-	db, err := sqlx.Open("pgx", "user=root dbname=movie sslmode=disable")
+	db, err := sqlx.Open("pgx", "host=localhost user=admin password=admin port=5432 dbname=movie sslmode=disable")
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func New() (*Repository, error) {
 
 func (r *Repository) Get(ctx context.Context, id string) (*model.Metadata, error) {
 	var title, description, director string
-	row := r.db.QueryRowxContext(ctx, "SELECT title, description, director FROM movies WHERE id = ?", id)
+	row := r.db.QueryRowxContext(ctx, "select title, description, director from movies where id=$1", id)
 	if err := row.Scan(&title, description, director); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, repository.ErrNotFound
@@ -48,7 +49,7 @@ func (r *Repository) Get(ctx context.Context, id string) (*model.Metadata, error
 
 func (r *Repository) Put(ctx context.Context, id string, metadata *model.Metadata) error {
 	_, err := r.db.ExecContext(ctx,
-		"INSERT INTO movies (id, title, description, director) VALUES (?, ?, ?, ?)",
+		"INSERT INTO movies (id, title, description, director) VALUES ($1, $2, $3, $4)",
 		id, metadata.Title, metadata.Description, metadata.Director, 
 	)
 	return err

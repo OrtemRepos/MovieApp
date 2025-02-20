@@ -63,8 +63,5 @@ func (g *Gateway) PutRating(
 			RatingValue: int32(value),
 		},
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

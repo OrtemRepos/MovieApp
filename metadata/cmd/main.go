@@ -12,7 +12,7 @@ import (
 	"movieexample.com/gen"
 	"movieexample.com/metadata/internal/controller/metadata"
 	grpchandler "movieexample.com/metadata/internal/handler/grpc"
-	"movieexample.com/metadata/internal/repository/memory"
+	"movieexample.com/metadata/internal/repository/postgresql"
 	"movieexample.com/pkg/discovery"
 	"movieexample.com/pkg/discovery/consul"
 )
@@ -61,7 +61,10 @@ func main() {
 	}()
 	defer cancelFunc()
 
-	repo := memory.New()
+	repo, err := postgresql.New()
+	if err != nil {
+		panic(err)
+	}
 	ctrl := metadata.New(repo, logger)
 
 	h := grpchandler.New(ctrl, logger)

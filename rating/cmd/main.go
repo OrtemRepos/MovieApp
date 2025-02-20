@@ -15,7 +15,7 @@ import (
 	"movieexample.com/rating/internal/controller/rating"
 	grpchandler "movieexample.com/rating/internal/handler/grpc"
 	"movieexample.com/rating/internal/ingester/kafka"
-	"movieexample.com/rating/internal/repository/memory"
+	"movieexample.com/rating/internal/repository/postgresql"
 )
 
 const serviceName = "rating"
@@ -65,8 +65,11 @@ func main() {
 	}()
 	defer cancelFunc()
 
-	repo := memory.New()
-	ingestrer, err := kafka.NewIngester("localhost:9093", "ingester", "rating", logger)
+	repo, err := postgresql.New()
+	if err != nil {
+		panic(err)
+	}
+	ingestrer, err := kafka.NewIngester("localhost:9092", "ingester", "rating", logger)
 	if err != nil {
 		panic(err)
 	}

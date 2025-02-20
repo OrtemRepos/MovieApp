@@ -32,6 +32,7 @@ message PutMetadataReuqest {
 }
 
 message PutMetadataResponse {
+    string id = 1;
 }
 
 service RatingService {
@@ -56,6 +57,8 @@ message PutRatingRequest {
 }
 
 message PutRatingResponse {
+    string record_id = 1;
+    int32 rating_value = 2;
 }
 
 service MovieService {
