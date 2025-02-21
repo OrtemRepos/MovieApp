@@ -11,6 +11,7 @@ require (
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.70.0
 	google.golang.org/protobuf v1.35.2
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -34,6 +35,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
+	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/twmb/franz-go/pkg/kmsg v1.9.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect

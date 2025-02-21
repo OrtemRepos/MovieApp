@@ -50,7 +50,7 @@ func (r *Repository) Get(ctx context.Context, id string) (*model.Metadata, error
 func (r *Repository) Put(ctx context.Context, id string, metadata *model.Metadata) error {
 	_, err := r.db.ExecContext(ctx,
 		"INSERT INTO movies (id, title, description, director) VALUES ($1, $2, $3, $4)",
-		id, metadata.Title, metadata.Description, metadata.Director, 
+		id, metadata.Title, metadata.Description, metadata.Director,
 	)
 	return err
 }

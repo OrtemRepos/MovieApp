@@ -20,7 +20,7 @@ import (
 const serviceName = "metadata"
 
 func main() {
-	port := flag.Int("p", 8081, "API handler port")
+	port := flag.Int("p", 0, "API handler port")
 	flag.Parse()
 
 	logger, err := zap.NewDevelopment()
@@ -28,6 +28,11 @@ func main() {
 		panic(err)
 	}
 	defer func() { _ = logger.Sync() }()
+
+	cfg := loadConfig()
+	if *port == 0 {
+		port = &cfg.APIConfig.Port
+	}
 
 	logger.Info("Starting the metadata service", zap.Int("port", *port))
 

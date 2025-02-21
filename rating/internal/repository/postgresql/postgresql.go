@@ -50,10 +50,10 @@ func (r *Repository) Get(ctx context.Context, recordID model.RecordID, recordTyp
 		res = append(
 			res,
 			model.Rating{
-				RecordID: recordID,
+				RecordID:   recordID,
 				RecordType: recordType,
-				UserID: model.UserID(userID),
-				Value: model.RatingValue(value),
+				UserID:     model.UserID(userID),
+				Value:      model.RatingValue(value),
 			},
 		)
 	}

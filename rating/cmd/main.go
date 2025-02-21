@@ -27,8 +27,13 @@ func main() {
 	}
 	defer func() { _ = logger.Sync() }()
 
-	port := flag.Int("p", 8082, "API handler port")
+	port := flag.Int("p", 0, "API handler port")
 	flag.Parse()
+
+	cfg := loadConfig()
+	if *port == 0 {
+		port = &cfg.APIConfig.Port
+	}
 
 	logger.Info("Starting the rating service", zap.Int("port", *port))
 

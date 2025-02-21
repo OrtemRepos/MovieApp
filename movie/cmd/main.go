@@ -21,13 +21,18 @@ import (
 const serviceName = "movie"
 
 func main() {
-	port := flag.Int("p", 8083, "API handler port")
+	port := flag.Int("p", 0, "API handler port")
 	flag.Parse()
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		panic(err)
 	}
 	defer func() { _ = logger.Sync() }()
+
+	cfg := loadConfig()
+	if *port == 0 {
+		port = &cfg.APIConfig.Port
+	}
 
 	logger.Info("Starting the movie service", zap.Int("port", *port))
 

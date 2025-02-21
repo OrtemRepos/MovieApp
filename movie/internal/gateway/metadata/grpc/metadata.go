@@ -47,7 +47,7 @@ func (g *Gateway) Put(ctx context.Context, id string, metadata *model.Metadata) 
 	_, err = client.PutMetadata(
 		ctx,
 		&gen.PutMetadataReuqest{
-			Id: id,
+			Id:       id,
 			Metadata: model.MetadataToProto(metadata),
 		},
 	)
