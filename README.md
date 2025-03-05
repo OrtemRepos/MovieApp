@@ -26,11 +26,11 @@
 
 ### Зависимости
 Обязательные:
-    - Go 1.19+
-    - PostgreSQL 14+
-    - Consul 1.13+
-    - Kafka 3.3+ (для Rating Service)
+- Go 1.19+
+- PostgreSQL 14+
+- Consul 1.13+
+- Kafka 3.3+ (для Rating Service)
 
 Опциональные:
-    - grpcurl (для тестирования gRPC)
-    - Docker (для упрощения развертывания)
+- grpcurl (для тестирования gRPC)
+- Docker (для упрощения развертывания)
